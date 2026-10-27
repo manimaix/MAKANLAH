@@ -23,6 +23,9 @@ The reference is [ASD-STE100 Issue 9, Part 1](https://www.asd-ste100.org/assets/
 | Served | Staff have served the order. |
 | Cancelled | Staff will not prepare or serve the order. |
 | Paid | Staff have recorded payment received at the counter. |
+| Occupied | Guests use the table. This state is separate from order status. |
+| Seat guests | Mark a table occupied before guests place an order. |
+| Clear table | Release a table after guests leave and orders are complete and paid. |
 
 Account roles remain server-enforced. The interface uses normal email/password sign-in. It does not offer sample role accounts, automatic role selection or sample-order creation controls. Business and personal registration are real account types, not sign-in bypasses.
 

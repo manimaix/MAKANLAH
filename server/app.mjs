@@ -11,6 +11,7 @@ import { openMediaStorage } from "./media.mjs";
 import { makeInitialState } from "./seed.mjs";
 import QRCode from "qrcode";
 import { exportOrders, malaysiaDate, ordersCsv } from "./merchant-exports.mjs";
+import { seatTable, tableService } from "../shared/table-service.mjs";
 import {
   checkPassword,
   hashPassword,
@@ -110,7 +111,10 @@ export async function createApp(overrides = {}) {
   const config = loadConfig(overrides);
   if (config.production && config.demoMode)
     throw new Error("Disable DEMO_MODE before running in production.");
-  const store = await openStore(config, makeInitialState(config.demoMode, config.demoPassword));
+  const store = await openStore(
+    config,
+    makeInitialState(config.demoMode, config.demoPassword),
+  );
   const media = await openMediaStorage(config);
   const app = express();
   app.disable("x-powered-by");
@@ -932,6 +936,39 @@ export async function createApp(overrides = {}) {
     });
     res.status(201).json({ table });
   });
+  app.patch(
+    "/api/merchant/tables/:id/occupancy",
+    merchant,
+    async (req, res) => {
+      const data = z.object({ occupied: z.boolean() }).parse(req.body);
+      const table = await store.transact((s) => {
+        const table = s.tables.find((t) => t.id === req.params.id);
+        if (!table) fail(404, "Table not found.");
+        ownedPlace(s, table.placeId, req.user);
+        if (data.occupied) {
+          seatTable(table, s.orders, id(), now());
+        } else {
+          const service = tableService(table, s.orders);
+          if (!service.occupied) return table;
+          if (service.activeOrders.length)
+            fail(
+              409,
+              "Complete or cancel the table orders before clearing the table.",
+            );
+          if (service.unpaidOrders.length)
+            fail(
+              409,
+              "Record payment for the table orders before clearing the table.",
+            );
+          table.occupied = false;
+          table.clearedAt = now();
+          delete table.occupiedSince;
+        }
+        return table;
+      });
+      res.json({ table });
+    },
+  );
   app.patch("/api/merchant/tables/:id", merchant, async (req, res) => {
     const data = z
       .object({
@@ -1230,11 +1267,13 @@ export async function createApp(overrides = {}) {
           ),
           { status: 409, code: "MENU_PRICE_CHANGED" },
         );
+      const tableServiceId = seatTable(table, s.orders, id(), now());
       const order = {
         id: id(),
         placeId: place.id,
         placeName: place.name,
         tableId: table.id,
+        tableServiceId,
         tableLabel: table.label,
         customerName: data.customerName,
         note: data.note,

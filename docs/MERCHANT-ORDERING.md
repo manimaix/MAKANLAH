@@ -14,6 +14,8 @@ The guest menu at `/order/<table-token>` has a restaurant/table header, search, 
 
 The working interface has no sample-ticket creation action. Sample records are excluded from queues and sales. The internal sample endpoint remains available only in local demo mode for automated tests.
 
+Table occupancy is separate from food preparation and QR availability. A valid table order marks the table occupied. Staff can also select **Seat guests** before an order exists. Serving food or recording payment does not release the table. Select **Clear table** after guests leave. Unfinished or unpaid orders block clearing. Pausing a QR code does not change occupancy. New seating starts a separate service record so earlier paid orders do not enter the next party's table total. Existing real orders remain associated with their table until its first explicit clear; labelled examples do not occupy tables.
+
 QR codes use the current website address. CSV exports and QR PNG downloads are authenticated file responses with ownership checks. Print actions wait for QR images to load. Local phone access requires the same server to be available to the phone; deployment and network setup belong in the developer configuration, not the merchant interface.
 
 ## Reference patterns

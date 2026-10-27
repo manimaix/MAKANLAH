@@ -1005,9 +1005,6 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.qr-disabled .table-main-button {
-  opacity: 0.6;
-}
 .qr-destination {
   display: flex;
   align-items: center;
@@ -3248,6 +3245,26 @@
   }
 }
 /* Merchant task screens. */
+.table-service-actions {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+.table-service-actions .btn {
+  min-height: 40px;
+  padding: 8px;
+  font-size: 12px;
+}
+.table-service-note,
+.table-service-detail {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.table-service-detail {
+  margin-top: 8px;
+}
 .mpos-sidebar {
   width: 210px;
   padding: 24px 16px 18px;

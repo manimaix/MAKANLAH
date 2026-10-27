@@ -65,6 +65,7 @@ import type {
   Table,
 } from "../types";
 import "../merchant.css";
+import { tableService } from "../../shared/table-service.mjs";
 
 const navigation = [
   { key: "orders", label: "Orders", icon: ClipboardList },
@@ -342,6 +343,7 @@ export default function MerchantWorkspace() {
       const result = await send<{
         order?: Order;
         place?: Place;
+        table?: Table;
         tables?: Table[];
       }>(path, body, method);
       if (result.order) {
@@ -366,6 +368,17 @@ export default function MerchantWorkspace() {
                 ...s,
                 places: s.places.map((p) =>
                   p.id === result.place!.id ? result.place! : p,
+                ),
+              }
+            : s,
+        );
+      if (result.table)
+        setData((s) =>
+          s
+            ? {
+                ...s,
+                tables: s.tables.map((t) =>
+                  t.id === result.table!.id ? result.table! : t,
                 ),
               }
             : s,
@@ -402,7 +415,13 @@ export default function MerchantWorkspace() {
           ? activeStatuses.includes(o.status)
           : o.status === statusFilter)) &&
       (!query ||
-        [o.customerName, o.tableLabel, o.id, ...o.items.map((i) => i.name)]
+        [
+          o.customerName,
+          o.tableLabel,
+          tables.find((t) => t.id === o.tableId)?.label || "",
+          o.id,
+          ...o.items.map((i) => i.name),
+        ]
           .join(" ")
           .toLowerCase()
           .includes(query.toLowerCase())),
@@ -1155,28 +1174,17 @@ export default function MerchantWorkspace() {
                       <i className="table-state-dot active" />
                       {
                         tables.filter(
-                          (t) =>
-                            t.active &&
-                            active.some((o) =>
-                              o.tableId
-                                ? o.tableId === t.id
-                                : o.tableLabel === t.label,
-                            ),
+                          (t) => tableService(t, allOrders).occupied,
                         ).length
                       }{" "}
-                      in service
+                      occupied
                     </span>
                     <span>
                       <i className="table-state-dot" />
                       {
                         tables.filter(
                           (t) =>
-                            t.active &&
-                            !active.some((o) =>
-                              o.tableId
-                                ? o.tableId === t.id
-                                : o.tableLabel === t.label,
-                            ),
+                            t.active && !tableService(t, allOrders).occupied,
                         ).length
                       }{" "}
                       available
@@ -1195,12 +1203,13 @@ export default function MerchantWorkspace() {
                           .includes(query.toLowerCase()),
                       )
                       .map((t) => {
-                        const orders = active.filter((o) =>
-                            o.tableId
-                              ? o.tableId === t.id
-                              : o.tableLabel === t.label,
-                          ),
-                          occupied = t.active && orders.length > 0;
+                        const service = tableService(t, allOrders),
+                          occupied = service.occupied,
+                          clearReason = service.activeOrders.length
+                            ? "Complete orders before clearing the table."
+                            : service.unpaidOrders.length
+                              ? "Record payment before clearing the table."
+                              : "";
                         return (
                           <article
                             className={`m-table-card ${occupied ? "occupied" : ""} ${!t.active ? "qr-disabled" : ""}`}
@@ -1231,29 +1240,63 @@ export default function MerchantWorkspace() {
                                   "table-state " + (occupied ? "occupied" : "")
                                 }
                               >
-                                {!t.active
-                                  ? "QR paused"
-                                  : occupied
-                                    ? `${orders.length} active ${orders.length === 1 ? "order" : "orders"}`
-                                    : "Ready for guests"}
+                                {occupied ? "Occupied" : "Ready for guests"}
                               </span>
+                              {occupied && (
+                                <small className="table-service-detail">
+                                  {service.activeOrders.length
+                                    ? `${service.activeOrders.length} active ${service.activeOrders.length === 1 ? "order" : "orders"}`
+                                    : "Guests seated"}
+                                </small>
+                              )}
+                              {!t.active && (
+                                <small className="table-service-detail">
+                                  QR paused
+                                </small>
+                              )}
                             </button>
+                            <div className="table-service-actions">
+                              <button
+                                className="btn secondary"
+                                aria-label={
+                                  (occupied ? "Clear " : "Seat guests at ") +
+                                  t.label
+                                }
+                                aria-describedby={
+                                  clearReason ? "table-note-" + t.id : undefined
+                                }
+                                disabled={busy || (occupied && !!clearReason)}
+                                onClick={() =>
+                                  mutate(
+                                    "/merchant/tables/" + t.id + "/occupancy",
+                                    { occupied: !occupied },
+                                  )
+                                }
+                              >
+                                {occupied ? "Clear table" : "Seat guests"}
+                              </button>
+                              {clearReason && (
+                                <p
+                                  className="table-service-note"
+                                  id={"table-note-" + t.id}
+                                >
+                                  {clearReason}
+                                </p>
+                              )}
+                            </div>
                             <footer>
-                              {occupied ? (
+                              {occupied && service.orders.length > 0 ? (
                                 <button
                                   className="text-link"
                                   onClick={() => {
                                     navigate("orders");
+                                    setStatusFilter("all");
+                                    setBoard(false);
                                     setQuery(t.label);
                                   }}
                                 >
                                   View orders ·{" "}
-                                  {money(
-                                    orders.reduce(
-                                      (n, o) => n + o.totalCents,
-                                      0,
-                                    ) / 100,
-                                  )}
+                                  {money(service.totalCents / 100)}
                                   <ArrowRight size={14} />
                                 </button>
                               ) : (

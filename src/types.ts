@@ -112,6 +112,10 @@ export interface Table {
   active: boolean;
   seats?: number;
   area?: string;
+  occupied?: boolean;
+  serviceId?: string;
+  occupiedSince?: string;
+  clearedAt?: string;
 }
 export type OrderStatus =
   "new" | "accepted" | "preparing" | "ready" | "completed" | "cancelled";
@@ -120,6 +124,7 @@ export interface Order {
   placeId: string;
   placeName: string;
   tableId?: string;
+  tableServiceId?: string;
   tableLabel: string;
   customerName: string;
   note: string;

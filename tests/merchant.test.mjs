@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../server/app.mjs";
+import { tableService } from "../shared/table-service.mjs";
 let app, server, base, dir, menu;
 const cookies = {};
 const testPassword = randomUUID();
@@ -28,7 +29,12 @@ const orderBody = (items) => ({
 });
 before(async () => {
   dir = await fs.mkdtemp(path.join(os.tmpdir(), "makanlah-merchant-"));
-  app = await createApp({ dataDir: dir, demoMode: true, demoPassword: testPassword, skipRateLimit: true });
+  app = await createApp({
+    dataDir: dir,
+    demoMode: true,
+    demoPassword: testPassword,
+    skipRateLimit: true,
+  });
   server = app.app.listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   base = "http://127.0.0.1:" + server.address().port;
@@ -473,5 +479,179 @@ test("QR download returns a real PNG and protects each business's table", async 
       )
     ).status,
     400,
+  );
+});
+
+test("table occupancy survives served and paid orders until staff clear the table", async () => {
+  const createdTable = await req("/merchant/places/nasi/tables", {
+    method: "POST",
+    body: { label: "Occupancy check" },
+  });
+  const table = createdTable.data.table;
+  const readTable = async () =>
+    (await req("/merchant")).data.tables.find((t) => t.id === table.id);
+  const occupancy = (occupied) =>
+    req("/merchant/tables/" + table.id + "/occupancy", {
+      method: "PATCH",
+      body: { occupied },
+    });
+  const first = await req("/orders", {
+    as: "guest",
+    method: "POST",
+    body: {
+      ...orderBody([{ menuId: "menu-nasi", quantity: 1 }]),
+      tableToken: table.token,
+    },
+  });
+  assert.equal(first.status, 201);
+  assert.equal((await readTable()).occupied, true);
+  assert.equal((await readTable()).serviceId, first.data.order.tableServiceId);
+  assert.equal((await occupancy(false)).status, 409);
+  for (const status of ["accepted", "preparing", "ready", "completed"])
+    assert.equal(
+      (
+        await req("/merchant/orders/" + first.data.order.id, {
+          method: "PATCH",
+          body: { status },
+        })
+      ).status,
+      200,
+    );
+  assert.equal((await readTable()).occupied, true);
+  assert.equal((await occupancy(false)).status, 409);
+  await req("/merchant/orders/" + first.data.order.id + "/payment", {
+    method: "PATCH",
+    body: { paid: true },
+  });
+  assert.equal((await readTable()).occupied, true);
+  const reopened = await createApp({ dataDir: dir, demoMode: false });
+  try {
+    assert.equal(
+      (await reopened.store.read()).tables.find((t) => t.id === table.id)
+        .occupied,
+      true,
+    );
+  } finally {
+    await reopened.close();
+  }
+  assert.equal((await occupancy(false)).status, 200);
+  assert.equal((await readTable()).occupied, false);
+  const oldServiceId = (await readTable()).serviceId;
+  const second = await req("/orders", {
+    as: "guest",
+    method: "POST",
+    body: {
+      ...orderBody([{ menuId: "menu-nasi", quantity: 1 }]),
+      tableToken: table.token,
+    },
+  });
+  assert.equal(second.status, 201);
+  const current = await req("/merchant"),
+    currentTable = await readTable();
+  assert.notEqual(currentTable.serviceId, oldServiceId);
+  assert.deepEqual(
+    tableService(currentTable, current.data.orders).orders.map((o) => o.id),
+    [second.data.order.id],
+  );
+  await req("/merchant/orders/" + second.data.order.id, {
+    method: "PATCH",
+    body: { status: "cancelled" },
+  });
+  assert.equal((await readTable()).occupied, true);
+  assert.equal((await occupancy(false)).status, 200);
+});
+
+test("manual seating is independent of QR status and protected by business ownership", async () => {
+  const result = await req("/merchant/places/nasi/tables", {
+    method: "POST",
+    body: { label: "Manual seating check" },
+  });
+  const table = result.data.table,
+    route = "/merchant/tables/" + table.id + "/occupancy";
+  assert.equal(
+    (
+      await req(route, {
+        as: "user",
+        method: "PATCH",
+        body: { occupied: true },
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await req(route, {
+        as: "guest",
+        method: "PATCH",
+        body: { occupied: true },
+      })
+    ).status,
+    401,
+  );
+  await app.store.transact((s) =>
+    s.tables.push({
+      id: "other-occupancy",
+      placeId: "noodles",
+      label: "Other business",
+      token: randomUUID(),
+      active: true,
+    }),
+  );
+  assert.equal(
+    (
+      await req("/merchant/tables/other-occupancy/occupancy", {
+        method: "PATCH",
+        body: { occupied: true },
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await req(route, { method: "PATCH", body: { occupied: true } })).data.table
+      .occupied,
+    true,
+  );
+  await req("/merchant/tables/" + table.id, {
+    method: "PATCH",
+    body: { active: false },
+  });
+  const data = (await req("/merchant")).data,
+    occupied = data.tables.find((t) => t.id === table.id);
+  assert.equal(occupied.active, false);
+  assert.equal(tableService(occupied, data.orders).occupied, true);
+  assert.equal(
+    (await req(route, { method: "PATCH", body: { occupied: false } })).data
+      .table.occupied,
+    false,
+  );
+});
+
+test("existing served table orders retain occupancy while examples and other businesses do not", () => {
+  const table = {
+    id: "legacy-table",
+    placeId: "nasi",
+    label: "Same label",
+    active: false,
+  };
+  const order = {
+    id: "legacy-order",
+    placeId: "nasi",
+    tableLabel: "Same label",
+    status: "completed",
+    paymentStatus: "paid_at_counter",
+    totalCents: 1200,
+  };
+  assert.equal(tableService(table, [order]).occupied, true);
+  assert.equal(
+    tableService(table, [{ ...order, sample: true }]).occupied,
+    false,
+  );
+  assert.equal(
+    tableService(table, [{ ...order, placeId: "noodles" }]).occupied,
+    false,
+  );
+  assert.equal(
+    tableService(table, [{ ...order, status: "cancelled" }]).occupied,
+    false,
   );
 });
