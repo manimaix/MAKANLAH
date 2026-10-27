@@ -1,0 +1,11 @@
+node_modules/
+dist/
+var/
+.env
+.env.*.local
+*.log
+.impeccable/review/
+test-results/
+*.tsbuildinfo
+dist-pages/
+.deployment/

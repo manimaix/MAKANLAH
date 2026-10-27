@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-27T03:20:00+08:00",
+  "title": "Design System: Makanlah",
+  "extensions": {
+    "provenance": { "figmaFileKey": "7L5g6fhIpqer5AFKRnocfY", "figmaPageId": "5:2", "source": "Saved Figma construction sources, photo assets, browser captures and implemented CSS", "liveFigmaComparison": false },
+    "colorMeta": {
+      "cream": { "role": "neutral", "displayName": "Cream canvas" },
+      "ink": { "role": "primary", "displayName": "Deep brown" },
+      "gold": { "role": "secondary", "displayName": "Discovery gold" },
+      "orange": { "role": "tertiary", "displayName": "Burnt orange emphasis" }
+    },
+    "typographyMeta": {
+      "display": { "purpose": "Home display: 88/76/65/64px across responsive targets." },
+      "body": { "purpose": "15px desktop body; 14px below640px. Avoid using small annotations as body text." }
+    },
+    "shadows": [
+      { "name": "popover", "value": "0 10px 34px #2a1a0e24", "purpose": "Account controls." },
+      { "name": "location", "value": "0 12px 38px #2a1a0e26", "purpose": "Location picker." },
+      { "name": "map-pin", "value": "0 4px 12px #2a1a0e26", "purpose": "Map price markers." },
+      { "name": "drawer", "value": "-15px 0 50px #2a1a0e29", "purpose": "Comments and reports." }
+    ],
+    "motion": [
+      { "name": "control", "value": "0.16s ease", "purpose": "Button backgrounds and pressed movement." },
+      { "name": "photo", "value": "0.35s cubic-bezier(.2,.7,.3,1)", "purpose": "Food image hover scale." },
+      { "name": "toast", "value": "0.2s ease", "purpose": "Toast opacity and position." }
+    ],
+    "breakpoints": [ { "name": "compact-desktop", "value": "1200px" }, { "name": "tablet", "value": "960px" }, { "name": "mobile", "value": "640px" } ],
+    "focus": "3px solid #d4621a, 4px offset; fields use a brown border and 1px shadow.",
+    "reducedMotion": "Animations and transitions are removed; hover image scaling is disabled."
+  },
+  "components": [
+    { "name": "Primary button", "kind": "button", "refersTo": "button-primary", "description": "A clear primary action.", "html": "<button class=\"ds-primary\">Share a bite</button>", "css": ".ds-primary{background:var(--ink,#2a1a0e);color:var(--cream,#fef3e2);border:1px solid transparent;border-radius:12px;min-height:48px;padding:12px 22px;font:650 14px 'DM Sans Variable',sans-serif;cursor:pointer;transition:background .16s ease,transform .16s ease}.ds-primary:hover{background:#4c3020}.ds-primary:active{transform:translateY(1px)}.ds-primary:focus-visible{outline:3px solid #d4621a;outline-offset:4px}" },
+    { "name": "Secondary button", "kind": "button", "refersTo": "button-secondary", "description": "A quieter secondary action.", "html": "<button class=\"ds-secondary\">Use my location</button>", "css": ".ds-secondary{background:transparent;color:var(--ink,#2a1a0e);border:1px solid var(--line,#d9c8b1);border-radius:12px;min-height:48px;padding:12px 22px;font:650 14px 'DM Sans Variable',sans-serif;cursor:pointer}.ds-secondary:hover{background:var(--soft,#f7e9d3)}.ds-secondary:focus-visible{outline:3px solid #d4621a;outline-offset:4px}" },
+    { "name": "Field", "kind": "input", "description": "A warm, clear editable field.", "html": "<input class=\"ds-field\" aria-label=\"Search food\" placeholder=\"Find something sedap\" />", "css": ".ds-field{background:var(--white,#fffaf2);color:var(--ink,#2a1a0e);border:1px solid var(--line,#d9c8b1);border-radius:12px;min-height:48px;padding:13px 14px;font:14px 'DM Sans Variable',sans-serif}.ds-field:focus{outline:none;border-color:#2a1a0e;box-shadow:0 0 0 1px #2a1a0e}" },
+    { "name": "Selected chip", "kind": "chip", "description": "A compact filter state.", "html": "<button class=\"ds-chip\" aria-pressed=\"true\">Popular now</button>", "css": ".ds-chip{background:var(--ink,#2a1a0e);color:var(--cream,#fef3e2);border:1px solid #2a1a0e;border-radius:24px;padding:8px 16px;min-height:38px;font:500 12px 'DM Sans Variable',sans-serif;cursor:pointer}.ds-chip:hover{background:#4c3020}.ds-chip:focus-visible{outline:3px solid #d4621a;outline-offset:4px}" },
+    { "name": "Navigation link", "kind": "nav", "description": "Simple active route identification.", "html": "<nav aria-label=\"Sample navigation\"><a class=\"ds-nav\" href=\"/discover\" aria-current=\"page\">Explore</a></nav>", "css": ".ds-nav{font:700 13px 'DM Sans Variable',sans-serif;color:var(--ink,#2a1a0e);text-decoration:none}.ds-nav:hover{text-decoration:underline;text-underline-offset:4px}.ds-nav:focus-visible{outline:3px solid #d4621a;outline-offset:4px}" },
+    { "name": "Food information", "kind": "card", "description": "Unboxed information follows the real food photograph.", "html": "<article class=\"ds-food\"><h3>Nasi lemak sambal sotong</h3><p>Kampung Table · Sample listing</p><strong>RM12.00</strong></article>", "css": ".ds-food{color:var(--ink,#2a1a0e);padding-top:15px}.ds-food h3{font:750 21px/1.2 'Bricolage Grotesque Variable',sans-serif;letter-spacing:-.025em;margin:0}.ds-food p{font:12px/1.55 'DM Sans Variable',sans-serif;color:var(--muted,#71583f);margin:6px 0 10px}.ds-food strong{font:700 14px 'DM Sans Variable',sans-serif}" }
+  ],
+  "narrative": {
+    "northStar": "A food journal and city atlas",
+    "overview": "A warm food journal and city atlas for discovering Malaysian food and sharing food experiences. Preserve the user's four-color palette, typography and photographic Figma composition.",
+    "keyCharacteristics": [ "Real food photography", "Cream canvas", "Confident brown type", "Restrained orange emphasis", "Gold discovery surfaces", "Compact task controls" ],
+    "rules": [],
+    "dos": [ "Do use the credited food photography and preserve the selected palette, typography and flowing composition.", "Do credit Nextgen Tech in About Us and the footer." ],
+    "donts": [ "Don't add role eyebrows above headings or carry fixed Figma text heights into the web layout.", "Don't imply dietary certification, verified restaurants or provable review honesty.", "Don't claim cloud verification or deployment from local tests." ]
+  }
+}
