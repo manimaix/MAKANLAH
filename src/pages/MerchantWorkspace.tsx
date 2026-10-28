@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BellRing,
+  Banknote,
   BookOpen,
   Check,
   ChefHat,
@@ -46,6 +47,7 @@ import {
 } from "../components/ui";
 import { ListingEditor } from "./Merchant";
 import { DishEditor } from "../components/merchant/DishEditor";
+import { Cashier, type PaymentResult } from "../components/merchant/Cashier";
 import { QRArtwork, TableQR, tableLink } from "../components/merchant/TableQR";
 import {
   activeStatuses,
@@ -72,6 +74,7 @@ const navigation = [
   { key: "kitchen", label: "Kitchen", icon: ChefHat },
   { key: "menu", label: "Menu", icon: BookOpen },
   { key: "tables", label: "Tables", icon: QrCode },
+  { key: "cashier", label: "Cashier", icon: Banknote },
   { key: "sales", label: "Sales", icon: TrendingUp },
   { key: "settings", label: "Settings", icon: Settings2 },
 ];
@@ -328,8 +331,8 @@ export default function MerchantWorkspace() {
       audio.current?.close();
     };
   }, []);
-  function navigate(value: string) {
-    setParams({ view: value });
+  function navigate(value: string, orderId?: string) {
+    setParams({ view: value, ...(orderId ? { order: orderId } : {}) });
     setRange(value === "sales" ? "today" : "all");
     setStatusFilter("active");
     setQuery("");
@@ -399,6 +402,27 @@ export default function MerchantWorkspace() {
     )
       return;
     await mutate("/merchant/orders/" + order.id, { status });
+  }
+  function paymentChanged(result: PaymentResult) {
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            orders: current.orders.map(
+              (order) =>
+                result.orders.find((updated) => updated.id === order.id) ||
+                order,
+            ),
+            payments: [
+              result.payment,
+              ...(current.payments || []).filter(
+                (payment) => payment.id !== result.payment.id,
+              ),
+            ],
+          }
+        : current,
+    );
+    reload();
   }
   const place = data?.places.find((p) => p.id === placeId),
     menus = data?.menus.filter((m) => m.placeId === placeId) || [],
@@ -633,17 +657,8 @@ export default function MerchantWorkspace() {
               <div className="mpos-heading">
                 <div>
                   <h1>
-                    {view === "orders"
-                      ? "Orders"
-                      : view === "kitchen"
-                        ? "Kitchen"
-                        : view === "menu"
-                          ? "Menu"
-                          : view === "tables"
-                            ? "Tables"
-                            : view === "sales"
-                              ? "Sales"
-                              : "Settings"}
+                    {navigation.find((item) => item.key === view)?.label ||
+                      "Orders"}
                   </h1>
                 </div>
                 <div className="mpos-heading-actions">
@@ -1352,6 +1367,20 @@ export default function MerchantWorkspace() {
                     )}
                 </>
               )}
+              {view === "cashier" && place && (
+                <Cashier
+                  key={place.id}
+                  place={place}
+                  orders={allOrders}
+                  tables={tables}
+                  payments={(data.payments || []).filter(
+                    (payment) => payment.placeId === place.id,
+                  )}
+                  initialOrderId={params.get("order")}
+                  onChange={paymentChanged}
+                  onViewOrders={() => navigate("orders")}
+                />
+              )}
               {view === "sales" && (
                 <>
                   <div className="mpos-toolbar">
@@ -1560,21 +1589,51 @@ export default function MerchantWorkspace() {
               </strong>
               <small>Record payment after the customer pays.</small>
             </div>
-            {selectedOrder.status !== "cancelled" && (
-              <button
+            {selectedOrder.status !== "cancelled" &&
+              selectedOrder.paymentStatus !== "paid_at_counter" && (
+                <button
+                  className="text-link"
+                  onClick={() => {
+                    navigate("cashier", selectedOrder.id);
+                    setSelectedOrder(null);
+                  }}
+                >
+                  Accept payment
+                </button>
+              )}
+            {selectedOrder.paymentId && (
+              <a
                 className="text-link"
-                disabled={busy}
-                onClick={() =>
-                  mutate("/merchant/orders/" + selectedOrder.id + "/payment", {
-                    paid: selectedOrder.paymentStatus !== "paid_at_counter",
-                  })
-                }
+                href={mediaUrl(
+                  "/api/merchant/payments/" +
+                    selectedOrder.paymentId +
+                    "/receipt",
+                )}
+                target="_blank"
+                rel="noreferrer"
               >
-                {selectedOrder.paymentStatus === "paid_at_counter"
-                  ? "Reverse payment record"
-                  : "Record payment"}
-              </button>
+                View receipt
+              </a>
             )}
+            {selectedOrder.status !== "cancelled" &&
+              selectedOrder.paymentStatus === "paid_at_counter" &&
+              !selectedOrder.paymentId && (
+                <button
+                  className="text-link"
+                  disabled={busy}
+                  onClick={() =>
+                    confirm(
+                      "Reverse this payment record? Return any money separately.",
+                    ) &&
+                    mutate(
+                      "/merchant/orders/" + selectedOrder.id + "/payment",
+                      { paid: false },
+                    )
+                  }
+                >
+                  Reverse payment record
+                </button>
+              )}
           </div>
           <div className="drawer-save">
             {nextStage[selectedOrder.status] && (

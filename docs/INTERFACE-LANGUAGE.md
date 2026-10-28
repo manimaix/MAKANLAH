@@ -23,6 +23,13 @@ The reference is [ASD-STE100 Issue 9, Part 1](https://www.asd-ste100.org/assets/
 | Served | Staff have served the order. |
 | Cancelled | Staff will not prepare or serve the order. |
 | Paid | Staff have recorded payment received at the counter. |
+| Cashier | The merchant page for unpaid bills and payment receipts. |
+| Unpaid bill | Orders for one table and one seating that still require payment. |
+| Record payment | Save a payment received in cash or confirmed on an external terminal or bank app. |
+| Cash received | The cash amount given by the customer. |
+| Change | Cash received minus the payment amount. |
+| Receipt | The saved details of a recorded payment. |
+| Reverse payment record | Mark a payment record reversed with a reason. This action does not return money. |
 | Occupied | Guests use the table. This state is separate from order status. |
 | Seat guests | Mark a table occupied before guests place an order. |
 | Clear table | Release a table after guests leave and orders are complete and paid. |

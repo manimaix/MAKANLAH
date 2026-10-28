@@ -13,6 +13,12 @@ import QRCode from "qrcode";
 import { exportOrders, malaysiaDate, ordersCsv } from "./merchant-exports.mjs";
 import { seatTable, tableService } from "../shared/table-service.mjs";
 import {
+  publicPayment,
+  recordPayment,
+  reversePayment,
+  receiptHtml,
+} from "./payments.mjs";
+import {
   checkPassword,
   hashPassword,
   hashToken,
@@ -795,6 +801,10 @@ export async function createApp(overrides = {}) {
       places,
       menus: s.menus.filter((m) => ids.has(m.placeId)),
       tables: s.tables.filter((t) => ids.has(t.placeId)),
+      payments: (s.payments || [])
+        .filter((p) => ids.has(p.placeId) && !p.sample)
+        .map(publicPayment)
+        .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)),
       orders: s.orders
         .filter((o) => ids.has(o.placeId))
         .map(publicOrder)
@@ -1054,6 +1064,68 @@ export async function createApp(overrides = {}) {
       res.status(201).json({ tables });
     },
   );
+  app.post("/api/merchant/places/:id/payments", merchant, async (req, res) => {
+    const data = z
+      .object({
+        orderIds: z.array(z.uuid()).min(1).max(50),
+        method: z.enum(["cash", "card", "transfer"]),
+        expectedTotalCents: z.number().int().nonnegative().max(1000000000),
+        receivedCents: z
+          .number()
+          .int()
+          .nonnegative()
+          .max(1000000000)
+          .optional(),
+        reference: maybeText(80),
+        confirmed: z.boolean().default(false),
+        idempotencyKey: z.uuid(),
+      })
+      .parse(req.body);
+    const result = await store.transact((s) => {
+      const place = ownedPlace(s, req.params.id, req.user);
+      const payment = recordPayment(s, place, req.user, data);
+      return {
+        payment: publicPayment(payment),
+        orders: s.orders
+          .filter((o) => payment.orderIds.includes(o.id))
+          .map(publicOrder),
+      };
+    });
+    res.json(result);
+  });
+  app.post("/api/merchant/payments/:id/reverse", merchant, async (req, res) => {
+    const data = z.object({ reason: text(200) }).parse(req.body);
+    const result = await store.transact((s) => {
+      const payment = (s.payments || []).find(
+        (p) => p.id === req.params.id && !p.sample,
+      );
+      if (!payment) fail(404, "Payment record not found.");
+      ownedPlace(s, payment.placeId, req.user);
+      reversePayment(s, payment, req.user, data.reason);
+      return {
+        payment: publicPayment(payment),
+        orders: s.orders
+          .filter((o) => payment.orderIds.includes(o.id))
+          .map(publicOrder),
+      };
+    });
+    res.json(result);
+  });
+  app.get("/api/merchant/payments/:id/receipt", merchant, async (req, res) => {
+    const state = await store.read();
+    const payment = (state.payments || []).find(
+      (p) => p.id === req.params.id && !p.sample,
+    );
+    if (!payment) fail(404, "Receipt not found.");
+    ownedPlace(state, payment.placeId, req.user);
+    res.set("Cache-Control", "private, no-store");
+    if (req.query.download === "1")
+      res.set(
+        "Content-Disposition",
+        `attachment; filename="${payment.receiptNumber}.html"`,
+      );
+    res.type("html").send(receiptHtml(payment));
+  });
   app.patch("/api/merchant/orders/:id/payment", merchant, async (req, res) => {
     const data = z.object({ paid: z.boolean() }).parse(req.body);
     const order = await store.transact((s) => {
@@ -1062,6 +1134,8 @@ export async function createApp(overrides = {}) {
       ownedPlace(s, o.placeId, req.user);
       if (o.status === "cancelled")
         fail(409, "A cancelled order cannot be marked paid.");
+      if (o.paymentId)
+        fail(409, "Open Cashier to view or reverse this payment record.");
       o.paymentStatus = data.paid ? "paid_at_counter" : "pay_at_counter";
       o.updatedAt = now();
       return publicOrder(o);

@@ -1,0 +1,502 @@
+.cashier-toolbar {
+  gap: 16px;
+}
+.cashier-toolbar .tabs {
+  margin: 0;
+  flex: 1;
+}
+.cashier-toolbar .tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.cashier-toolbar .tabs span {
+  font-size: 11px;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+.cashier-caption {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0 16px;
+}
+.cashier-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.45fr);
+  gap: 24px;
+  align-items: start;
+  margin-top: 18px;
+}
+.cashier-queue {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  overflow: hidden;
+}
+.cashier-queue-row {
+  display: block;
+  text-align: left;
+  width: 100%;
+  padding: 18px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cashier-queue-row:last-child {
+  border-bottom: 0;
+}
+.cashier-queue-row:hover {
+  background: var(--soft);
+}
+.cashier-queue-row.selected {
+  background: var(--gold);
+}
+.cashier-queue-row > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.cashier-queue-row > div strong:last-child {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cashier-queue-row p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.cashier-queue-row small {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  color: var(--muted);
+}
+.cashier-queue-row.selected small {
+  color: var(--ink);
+}
+.cashier-queue-empty {
+  padding: 32px 20px;
+  text-align: center;
+}
+.cashier-queue-empty svg {
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.cashier-queue-empty h2 {
+  font-size: 18px;
+}
+.cashier-queue-empty p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.cashier-detail {
+  min-width: 0;
+  scroll-margin-top: 20px;
+}
+.cashier-panel {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+.cashier-bill-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.cashier-bill-heading h2 {
+  font-size: 23px;
+  line-height: 1.2;
+}
+.cashier-bill-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.cashier-bill-heading > span {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cashier-orders {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.cashier-orders > legend {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.cashier-order {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.cashier-order h3 {
+  font: 600 13px/1.5 var(--body);
+  margin: 0;
+}
+.cashier-order-select {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.cashier-order-select input {
+  margin-top: 3px;
+  accent-color: var(--ink);
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+}
+.cashier-order-select > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cashier-order-select > strong {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cashier-order-select small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+  font-size: 11px;
+}
+.cashier-order .ticket-items {
+  margin: 0;
+  padding: 0 0 0 29px;
+  border: 0;
+}
+.cashier-order .ticket-items strong {
+  font-size: 13px;
+}
+.cashier-order .ticket-items > li {
+  padding: 6px 0;
+  font-size: 12px;
+}
+.cashier-order .ticket-items li > span:last-child {
+  font-size: 12px;
+}
+.cashier-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0 18px;
+}
+.cashier-total > span {
+  font-size: 14px;
+  font-weight: 600;
+}
+.cashier-total > strong {
+  font: 750 29px/1.2 var(--body);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cashier-methods {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+  margin: 0 0 22px;
+  border: 0;
+}
+.cashier-methods legend {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.cashier-methods label {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 12px;
+  cursor: pointer;
+  position: relative;
+}
+.cashier-methods label.selected {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+.cashier-methods label:focus-within {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+.cashier-methods input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.cashier-methods label:has(input:disabled) {
+  cursor: wait;
+}
+.cashier-panel .field {
+  font-size: 13px;
+}
+.cashier-panel .field input {
+  min-height: 46px;
+  font-size: 16px;
+}
+.cashier-cash-input {
+  display: flex;
+  gap: 10px;
+}
+.cashier-cash-input input {
+  min-width: 0;
+  flex: 1;
+}
+.cashier-cash-input .btn {
+  flex-shrink: 0;
+  font-size: 12px;
+  min-height: 46px;
+}
+.cashier-change {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  padding: 15px 0;
+  margin: 8px 0 6px;
+}
+.cashier-change strong {
+  font-variant-numeric: tabular-nums;
+}
+.cashier-confirm {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  font-size: 13px;
+  margin: 18px 0 8px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.cashier-confirm input {
+  accent-color: var(--ink);
+  height: 17px;
+  width: 17px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.cashier-submit {
+  width: 100%;
+  margin-top: 12px;
+}
+.cashier-panel .form-error {
+  font-size: 12px;
+}
+.cashier-panel .form-error .text-link {
+  display: block;
+  margin-top: 8px;
+}
+.cashier-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: 18px;
+}
+.cashier-status {
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: var(--soft);
+  font-size: 11px !important;
+}
+.cashier-status.reversed {
+  color: var(--danger);
+}
+.cashier-table-name {
+  font-size: 18px;
+  font-weight: 650;
+  margin-top: 18px;
+}
+.cashier-receipt-items {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+.cashier-receipt-items li {
+  margin-top: 14px;
+}
+.cashier-receipt-items li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+.cashier-receipt-items strong {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cashier-receipt-items small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.cashier-payment-details {
+  margin: 0;
+  padding: 18px 0;
+}
+.cashier-payment-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 13px;
+  padding: 6px 0;
+}
+.cashier-payment-details > div:first-child {
+  font-size: 20px;
+  font-weight: 700;
+  padding-bottom: 14px;
+}
+.cashier-payment-details dd {
+  text-align: right;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.cashier-payment-details dt {
+  flex-shrink: 0;
+}
+.cashier-receipt-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.cashier-receipt-actions .btn {
+  font-size: 12px;
+  flex: 1;
+  min-height: 44px;
+}
+.cashier-receipt > .btn {
+  width: 100%;
+}
+.cashier-reverse {
+  display: block;
+  margin: 20px 0 0;
+  font-size: 12px;
+}
+.cashier-reverse-form {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.cashier-reverse-form > p,
+.cashier-reversal-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 12px 0;
+}
+.cashier-error {
+  margin-bottom: 16px;
+}
+@media (max-width: 1020px) {
+  .cashier-layout {
+    grid-template-columns: minmax(210px, 0.75fr) minmax(0, 1.35fr);
+    gap: 16px;
+  }
+  .cashier-panel {
+    padding: 18px;
+  }
+}
+@media (min-width: 1100px) {
+  .cashier-payment-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .cashier-checkout {
+    border-inline-start: 1px solid var(--line);
+    padding-inline-start: 18px;
+    min-width: 0;
+  }
+  .cashier-orders {
+    max-height: max(220px, calc(100dvh - 340px));
+    overflow-y: auto;
+  }
+  .cashier-order-select {
+    flex-wrap: wrap;
+  }
+  .cashier-order-select > strong {
+    padding-inline-start: 29px;
+  }
+  .cashier-order-select > span {
+    flex-basis: calc(100% - 30px);
+  }
+  .cashier-cash-input {
+    flex-wrap: wrap;
+  }
+  .cashier-cash-input input {
+    min-width: 100px;
+  }
+}
+@media (max-width: 800px) {
+  .cashier-layout {
+    grid-template-columns: 1fr;
+  }
+  .cashier-queue {
+    max-height: 290px;
+    overflow-y: auto;
+  }
+  .cashier-toolbar {
+    align-items: stretch;
+  }
+  .cashier-toolbar .m-search {
+    width: 100%;
+    max-width: none;
+  }
+}
+@media (max-width: 700px) {
+  .cashier-toolbar {
+    margin-top: 12px;
+  }
+  .cashier-toolbar .tabs {
+    display: flex;
+    width: 100%;
+  }
+  .cashier-toolbar .tabs button {
+    flex: 1;
+    justify-content: center;
+  }
+  .cashier-methods {
+    gap: 8px;
+  }
+  .cashier-methods label {
+    font-size: 12px;
+  }
+  .cashier-total > strong {
+    font-size: 27px;
+  }
+  .cashier-panel {
+    padding: 16px;
+  }
+  .cashier-bill-heading h2 {
+    font-size: 22px;
+  }
+}

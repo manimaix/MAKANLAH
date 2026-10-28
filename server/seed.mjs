@@ -1,7 +1,10 @@
 import { hashPassword } from "./auth.mjs";
 import { randomBytes } from "node:crypto";
 const now = new Date().toISOString();
-export function makeInitialState(demoMode, demoPassword = process.env.DEMO_PASSWORD) {
+export function makeInitialState(
+  demoMode,
+  demoPassword = process.env.DEMO_PASSWORD,
+) {
   const state = {
     version: 1,
     users: [],
@@ -16,13 +19,16 @@ export function makeInitialState(demoMode, demoPassword = process.env.DEMO_PASSW
     menus: [],
     tables: [],
     orders: [],
+    payments: [],
     reports: [],
     audit: [],
   };
   if (!demoMode) return state;
   if (demoPassword && demoPassword.length < 12)
     throw new Error("Use at least 12 characters for DEMO_PASSWORD.");
-  const passwordHash = hashPassword(demoPassword || randomBytes(32).toString("base64url"));
+  const passwordHash = hashPassword(
+    demoPassword || randomBytes(32).toString("base64url"),
+  );
   state.users = [
     {
       id: "user-demo",

@@ -4,7 +4,7 @@ Mode: Operate. Preserve the existing Makanlah palette, fonts, warm surfaces and 
 
 ## Daily workflow
 
-The dedicated `/merchant` workspace opens on live orders. A store selector scopes orders, menu, QR tables and sales to the merchant's own food place. The sidebar provides live orders, a focused kitchen view, menu management, tables/QR, sales/history and ordering settings. Orders poll every seven seconds while the page is visible; sound alerts are opt-in.
+The dedicated `/merchant` workspace opens on live orders. A store selector scopes orders, menu, QR tables, cashier records and sales to the merchant's own food place. The sidebar provides live orders, a focused kitchen view, menu management, tables/QR, Cashier, sales/history and ordering settings. Orders poll every seven seconds while the page is visible; sound alerts are opt-in.
 
 Orders move through New → Accepted → Preparing → Ready → Served. The merchant can inspect the full ticket, see options and kitchen notes, cancel an early-stage order, and record an offline counter payment. Recording a payment does not charge a card or transfer money. Phones start in list view. Served and cancelled status filters also use list view.
 
@@ -15,6 +15,16 @@ The guest menu at `/order/<table-token>` has a restaurant/table header, search, 
 The working interface has no sample-ticket creation action. Sample records are excluded from queues and sales. The internal sample endpoint remains available only in local demo mode for automated tests.
 
 Table occupancy is separate from food preparation and QR availability. A valid table order marks the table occupied. Staff can also select **Seat guests** before an order exists. Serving food or recording payment does not release the table. Select **Clear table** after guests leave. Unfinished or unpaid orders block clearing. Pausing a QR code does not change occupancy. New seating starts a separate service record so earlier paid orders do not enter the next party's table total. Existing real orders remain associated with their table until its first explicit clear; labelled examples do not occupy tables.
+
+## Cashier
+
+Open **Cashier** to select an unpaid table bill. Select the orders to pay, review the items and choose a payment method. Orders from different tables or seating records cannot share a payment. An unpaid ticket's **Accept payment** action opens its bill in Cashier.
+
+For cash, enter the amount received. The page shows the change and blocks an amount below the total. For card or bank/QR transfer, confirm that payment succeeded on the external terminal or bank app. A payment reference is optional. This application records that confirmation; it does not charge a card, send money or generate a payment QR code.
+
+Saving creates a durable payment record and receipt. The server calculates the amount from stored orders, checks business ownership and prevents duplicate payment. Receipts retain the business, items, options, extras, total, cashier and time as recorded. **Receipts** provides searchable history and private printable or downloadable HTML receipts. The browser's print dialog can save a PDF. Existing payments recorded before Cashier do not have retroactively generated ledger receipts.
+
+To correct a payment, open its receipt and select **Reverse payment record**. Enter a reason. The original record stays in history, and its orders become unpaid unless a newer payment already covers them. A reversal does not return money. Staff must handle any money return separately. Payment and reversal leave food preparation and table occupancy unchanged.
 
 QR codes use the current website address. CSV exports and QR PNG downloads are authenticated file responses with ownership checks. Print actions wait for QR images to load. Local phone access requires the same server to be available to the phone; deployment and network setup belong in the developer configuration, not the merchant interface.
 

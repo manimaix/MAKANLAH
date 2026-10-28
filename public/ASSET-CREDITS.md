@@ -16,3 +16,4 @@ Images are used as dish illustrations in the local Makanlah website. Names, pric
 Fonts are self-hosted from Fontsource: Bricolage Grotesque and DM Sans, under the SIL Open Font License. Leaflet and OpenStreetMap retain their own attribution in the map UI.
 
 Full licence texts are included locally: [GNU FDL 1.3](/licenses/GFDL-1.3.txt), [Bricolage Grotesque OFL](/licenses/bricolage-grotesque-OFL.txt), and [DM Sans OFL](/licenses/dm-sans-OFL.txt).
+Receipt fonts reuse the installed DM Sans Variable and Bricolage Grotesque Variable packages. Their Latin WOFF2 files are copied to `fonts/` with `scripts/copy-receipt-fonts.mjs`. The corresponding SIL Open Font License texts are in `licenses/`.

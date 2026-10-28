@@ -140,6 +140,7 @@ export interface Order {
   totalCents: number;
   status: OrderStatus;
   paymentStatus: string;
+  paymentId?: string;
   createdAt: string;
   updatedAt?: string;
   sample?: boolean;
@@ -149,6 +150,31 @@ export interface MerchantData {
   menus: MenuItem[];
   tables: Table[];
   orders: Order[];
+  payments: Payment[];
+}
+export interface Payment {
+  id: string;
+  placeId: string;
+  receiptNumber: string;
+  businessName: string;
+  businessAddress: string;
+  tableLabel: string;
+  orderIds: string[];
+  orders: Pick<
+    Order,
+    "id" | "customerName" | "items" | "note" | "totalCents"
+  >[];
+  totalCents: number;
+  method: "cash" | "card" | "transfer" | "counter";
+  receivedCents?: number;
+  changeCents?: number;
+  reference: string;
+  status: "recorded" | "reversed";
+  recordedAt: string;
+  recordedBy: string;
+  reversedAt?: string;
+  reversedBy?: string;
+  reversalReason?: string;
 }
 export interface Report {
   id: string;
