@@ -1,35 +1,39 @@
-# Storage and online deployment
+# Storage and deployment
 
-## Destination boundary
+## Project structure
 
-`server/store.mjs` exports `read`, `transact` and `close`. It supports SQLite and PostgreSQL. Every mutation runs inside a transaction; PostgreSQL locks its state row and local SQLite serializes mutations with `BEGIN IMMEDIATE`.
+The repository root contains the React/Vite frontend. backend/ contains an independently installable Express API, package.json and package-lock.json, runtime sources, shared pure helpers, receipt assets, scripts and PostgreSQL tests. The API does not require the frontend's dist/ directory. See ../backend/README.md for commands.
 
-The first version deliberately stores the application state as one transactional document (`app_state` locally, `makanlah_state` online). This keeps local/online behavior identical and is suitable for this working prototype and small installations. It is **not** a claim of high-volume production scalability: split collections into indexed relational tables before a large public rollout. The API is independent of that repository implementation.
+## Database
 
-`server/media.mjs` exports `put`, `serve` and `remove`, backed by the filesystem or S3-compatible storage. Media records contain stable `/api/media/<id>` URLs. Serving checks post/listing visibility and draft ownership; S3 remains private. Both storage implementations support video byte-range requests. Replacing the destination does not change frontend components.
+PostgreSQL is required locally and in production. DATABASE_URL, DATABASE_SCHEMA and DATABASE_POOL_SIZE belong in backend/.env or the deployment environment. Runtime configuration rejects SQLite.
 
-`VITE_API_URL` optionally changes the API base at build time. Prefer serving the web and API under one HTTPS origin for cookie sessions. If a separate API origin is used, configure `APP_ORIGIN` exactly and keep both hosts under the same site; this implementation uses SameSite=Lax cookies, so arbitrary cross-site deployments are intentionally unsupported.
+backend/src/store.mjs implements read, transact, ping and close. The state remains one JSONB document in makanlah_state. Mutations use a single pooled client, BEGIN, SELECT FOR UPDATE, UPDATE and COMMIT; failures roll back before releasing that client. Separate API processes therefore share the same locking boundary. This prototype retains document storage; it does not claim the indexed relational design needed for a large rollout.
 
-## Migration
+Tests use random schemas and do not reset the application's public schema. TEST_DATABASE_URL can isolate tests in a separate database. Only each generated test schema is dropped after its test file.
 
-`npm run migrate:online -- --copy-media` reads the local SQLite directory from `DATA_DIR`, refuses to overwrite nonempty PostgreSQL state, copies local original files into the configured S3 bucket and imports the records atomically. It clears sessions so people sign in on the new host. Run with both servers stopped, retain a local backup, and use an empty bucket/database destination. Partial failed bucket copies can safely be retried with the same generated keys while the database is still empty.
+## Local PostgreSQL
 
-If using online mode from the beginning, simply choose the destination variables. Source migration is unnecessary. To restore a local backup, stop the server, create a fresh local repository and load the backup's `state` object into `store.transact`, then restore its uploads folder. Keep a copy of the original before restoring.
+npm --prefix backend run db:setup creates a dedicated native instance using installed PostgreSQL binaries. On Windows its files are under %LOCALAPPDATA%/Makanlah/PostgreSQL-17 rather than the OneDrive project folder. It listens on loopback, uses generated SCRAM passwords, and provides a limited application login for database makanlah. Connection settings remain private in backend/.env. The existing system PostgreSQL service is not changed.
 
-## Deployment
+The default port is 5433, with the next available port selected if needed. npm run dev starts the managed instance before the API. db:start, db:status and db:stop act only on that dedicated instance. For a separately managed PostgreSQL service, configure DATABASE_URL and LOCAL_PG_MANAGED=false.
 
-Build with `npm run build`, then run `npm start` on a Node host with Node 22.13+ (24 recommended). Put a TLS reverse proxy in front of it. The Express server defaults to loopback; configure `HOST=0.0.0.0` only when your host requires it. Set `APP_ORIGIN` to the actual public origin, `DEMO_MODE=false`, `NODE_ENV=production`, and provider secrets outside Git. The built site needs a running API; static hosting alone cannot persist multi-user posts or handle uploads and orders.
+## Data migration and backups
 
-Browser geolocation works on localhost or HTTPS. The app requests it only after a visitor chooses **Use my location**; permission denial, timeout and unsupported browsers offer manual city/map alternatives. Device coordinates are not saved to the database or localStorage. The map still requires a network connection to its tile service.
+npm --prefix backend run migrate:sqlite reads the original var/makanlah.sqlite from the repository root, including committed WAL data. It backs up the snapshot under backend/var/backups, copies uploads into backend/var/uploads without overwriting different files, imports all records and existing sessions, and verifies the result. It refuses to overwrite nonempty PostgreSQL state. SQLite is retained only as a preserved source/backup and an import dependency, never as the active store.
 
-For local phone testing, expose the Vite server on your LAN (`npx vite --host 0.0.0.0`), set `APP_ORIGIN` to that LAN origin, and use the reachable origin in the merchant QR generator. Most browsers require HTTPS for device geolocation outside localhost. QR ordering itself works on a reachable HTTP LAN origin.
+npm --prefix backend run backup exports PostgreSQL application records and local uploads. The snapshot contains private account/session records and must stay out of Git and public hosting. Use provider backups and bucket versioning when deploying remotely.
 
-## Media compatibility and limits
+npm --prefix backend run migrate:online -- --copy-media reads current PostgreSQL data and local files, writes an empty TARGET_DATABASE_URL plus S3 bucket, verifies state, revokes copied sessions and preserves source records. Both API instances must be stopped. Remote PostgreSQL/S3 providers have not been exercised with real credentials.
 
-Actual file signatures, not client filenames, determine stored extensions. SVG, HTML and executables are rejected. H.264 MP4 and WebM are the most reliable web video choices. MOV playback depends on the browser's codec support. Original uploads are retained; this version does not transcode, scan for malware, strip EXIF, create adaptive streaming renditions, or run a background media-processing service. Add those services before opening unrestricted public uploads. Limit request sizes at your proxy to match the configured 80 MB video limit.
+## Uploads and frontend access
 
-## Before a public service
+backend/src/media.mjs keeps local filesystem and private S3-compatible adapters, including video byte ranges. DATA_DIR is resolved relative to backend/, regardless of the shell working directory. Media URLs retain /api/media/<id>; records did not need URL rewrites.
 
-Provider integration and deployment require real credentials and hosting, which were not supplied. Email delivery/password recovery, payment processing, multi-venue enterprise analytics, push notifications and verified merchant/certification services are not configured. These are separate integrations, not controls pretending to work. Existing functionality runs with local accounts, local files, local order fulfilment and the three enforced roles.
+Frontend VITE_API_URL is optional at build time. Local Vite proxies /api, /uploads and receipt fonts to port 3001. For deployment use a same-domain reverse proxy, or HTTPS frontend/API subdomains under the same parent domain and an exact backend APP_ORIGIN. Cookie sessions use SameSite=Lax; unrelated frontend/API sites are not supported.
 
-OpenStreetMap's standard tile service is used for the local preview. Keep visible attribution and comply with its usage policy; for a busy public service, set `VITE_MAP_TILE_URL` and `VITE_MAP_ATTRIBUTION` to a suitable provider or your own tile server.
+## Production
+
+Deploy backend/ with npm ci --omit=dev and npm start, or its Dockerfile. Configure NODE_ENV=production, DEMO_MODE=false, the host's PORT, HOST=0.0.0.0 if required, the frontend APP_ORIGIN, DATABASE_URL, and durable DATA_DIR or S3 credentials. Keep .env and provider secrets outside Git.
+
+Deploy the frontend from the repository root using npm ci and npm run build, publishing dist/. Configure VITE_API_URL at build time for a separate API. GitHub Pages remains a labelled browsing preview and does not host the backend/database.

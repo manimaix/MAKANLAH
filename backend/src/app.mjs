@@ -4,8 +4,7 @@ import { z } from "zod";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { fileTypeFromBuffer } from "file-type";
 import path from "node:path";
-import fs from "node:fs";
-import { loadConfig } from "./config.mjs";
+import { loadConfig, backendRoot } from "./config.mjs";
 import { openStore } from "./store.mjs";
 import { openMediaStorage } from "./media.mjs";
 import { makeInitialState } from "./seed.mjs";
@@ -309,13 +308,10 @@ export async function createApp(overrides = {}) {
         if (a.reset < Date.now()) attempts.delete(ip);
     next();
   };
-  app.get("/api/health", (req, res) =>
-    res.json({
-      ok: true,
-      storage: config.databaseDriver,
-      media: config.mediaDriver,
-    }),
-  );
+  app.get("/api/health", async (req, res) => {
+    await store.ping();
+    res.json({ ok: true, storage: config.databaseDriver, media: config.mediaDriver });
+  });
   app.get("/api/session", (req, res) =>
     res.json({ user: publicUser(req.user), demoMode: config.demoMode }),
   );
@@ -1536,13 +1532,8 @@ export async function createApp(overrides = {}) {
   app.use("/api", (req, res) =>
     res.status(404).json({ error: "This endpoint does not exist." }),
   );
-  const dist = path.resolve("dist");
-  if (fs.existsSync(dist)) {
-    app.use(express.static(dist));
-    app.get("/{*splat}", (req, res) =>
-      res.sendFile(path.join(dist, "index.html")),
-    );
-  }
+  app.use("/fonts", express.static(path.join(backendRoot, "public", "fonts")));
+  app.use("/licenses", express.static(path.join(backendRoot, "public", "licenses")));
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
     if (error instanceof z.ZodError)

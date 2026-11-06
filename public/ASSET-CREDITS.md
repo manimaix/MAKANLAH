@@ -17,3 +17,5 @@ Fonts are self-hosted from Fontsource: Bricolage Grotesque and DM Sans, under th
 
 Full licence texts are included locally: [GNU FDL 1.3](/licenses/GFDL-1.3.txt), [Bricolage Grotesque OFL](/licenses/bricolage-grotesque-OFL.txt), and [DM Sans OFL](/licenses/dm-sans-OFL.txt).
 Receipt fonts reuse the installed DM Sans Variable and Bricolage Grotesque Variable packages. Their Latin WOFF2 files are copied to `fonts/` with `scripts/copy-receipt-fonts.mjs`. The corresponding SIL Open Font License texts are in `licenses/`.
+
+The standalone backend serves unchanged receipt font copies from backend/public/fonts with OFL text in backend/public/licenses. Backend upload fixtures reuse the credited nasi photograph and photo-motion clip under backend/tests/fixtures; the Docker image excludes these test files.

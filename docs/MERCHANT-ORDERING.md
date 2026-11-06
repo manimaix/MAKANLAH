@@ -38,4 +38,4 @@ These informed the workflow; the interface and assets remain Makanlah's:
 
 ## Delivery boundary
 
-Local records and uploads use the existing SQLite/filesystem adapters. PostgreSQL/S3 destinations remain configurable. Counter payment is the active checkout method; no POS hardware or online payment processor has been connected.
+Records use PostgreSQL through the independent backend. Uploads use its local filesystem or configured S3 storage. Counter payment is the active checkout method; no POS hardware or online payment processor has been connected.

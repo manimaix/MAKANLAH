@@ -1,0 +1,32 @@
+{
+  "name": "makanlah-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node src/index.mjs",
+    "dev": "node scripts/dev.mjs",
+    "test": "node scripts/test.mjs",
+    "db:setup": "node scripts/local-postgres.mjs setup",
+    "db:start": "node scripts/local-postgres.mjs start",
+    "db:stop": "node scripts/local-postgres.mjs stop",
+    "db:status": "node scripts/local-postgres.mjs status",
+    "migrate:sqlite": "node scripts/migrate-sqlite.mjs",
+    "migrate:online": "node scripts/migrate-online.mjs",
+    "backup": "node scripts/backup.mjs",
+    "create-admin": "node scripts/create-admin.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.922.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "file-type": "^21.0.0",
+    "multer": "^2.0.2",
+    "pg": "^8.16.3",
+    "qrcode": "^1.5.4",
+    "zod": "^4.1.12"
+  }
+}

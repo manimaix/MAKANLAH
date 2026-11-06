@@ -1,10 +1,12 @@
+import { testDatabase } from "./database-helper.mjs";
+let database;
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { createApp } from "../server/app.mjs";
+import { createApp } from "../src/app.mjs";
 import { unpaidBills } from "../shared/cashier-bills.mjs";
 
 let app, server, base, dir;
@@ -52,8 +54,9 @@ const paymentBody = (orders, extra = {}) => ({
 const pay = (body, as = "merchant") =>
   req("/merchant/places/nasi/payments", { as, method: "POST", body });
 before(async () => {
+  database = await testDatabase();
   dir = await fs.mkdtemp(path.join(os.tmpdir(), "makanlah-cashier-"));
-  app = await createApp({
+  app = await createApp({ ...database.config,
     dataDir: dir,
     demoMode: true,
     demoPassword: password,
@@ -74,6 +77,7 @@ before(async () => {
 after(async () => {
   await new Promise((resolve) => server.close(resolve));
   await app.close();
+  await database.cleanup();
   await fs.rm(dir, { recursive: true, force: true });
 });
 
@@ -300,7 +304,7 @@ test("receipt snapshots persist and escape customer text in HTML and downloads",
   await app.store.transact((s) => {
     s.places.find((p) => p.id === "nasi").name = "Changed business name";
   });
-  const reopened = await createApp({ dataDir: dir, demoMode: false });
+  const reopened = await createApp({ ...database.config, dataDir: dir, demoMode: false });
   try {
     const stored = (await reopened.store.read()).payments.find(
       (p) => p.id === payment.id,

@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { loadConfig } from "../server/config.mjs";
-import { openStore } from "../server/store.mjs";
-import { makeInitialState } from "../server/seed.mjs";
-import { hashPassword } from "../server/auth.mjs";
+import { loadConfig } from "../src/config.mjs";
+import { openStore } from "../src/store.mjs";
+import { makeInitialState } from "../src/seed.mjs";
+import { hashPassword } from "../src/auth.mjs";
 const values = z
   .object({
     email: z.email(),

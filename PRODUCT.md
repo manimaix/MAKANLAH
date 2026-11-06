@@ -15,7 +15,7 @@ Implement the approved public Figma website as a responsive working local applic
 Preserve Figma's cream #FEF3E2, gold #F4AE52, orange #D4621A and brown #2A1A0E, Bricolage Grotesque headings, DM Sans body, food photography, 1440px desktop and 390px mobile composition. Adapt fixed Figma positions into flowing, responsive layout.
 
 ## Persistence and delivery
-SQLite and filesystem uploads locally; configurable PostgreSQL and S3-compatible storage destinations online. No cloud publication requested in this turn. Seeded listings, reviews and prices are labelled examples. Community credibility and paid partnerships are distinct; never claim to prove a review is honest. QR orders use pay at counter; online payment is outside the requested integration.
+The standalone `backend/` API uses PostgreSQL locally and online, with local filesystem uploads or configurable S3-compatible storage. The React/Vite frontend remains at the repository root for a separate static deployment. Seeded listings, reviews and prices are labelled examples. Community credibility and paid partnerships are distinct; never claim to prove a review is honest. QR orders use pay at counter; online payment is outside the requested integration.
 
 ## Evidence
 Figma 7L5g6fhIpqer5AFKRnocfY public page 5:2; saved construction sources, asset bank and browser capture. Live Figma connector remains blocked by its Starter-plan quota. This implementation uses saved design evidence; no pixel-perfect claim against a new live render.

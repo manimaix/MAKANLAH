@@ -1,5 +1,5 @@
 {
-  "name": "makanlah",
+  "name": "makanlah-frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -7,33 +7,30 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "concurrently -k -n api,web \"node --watch server/index.mjs\" \"vite --host 127.0.0.1\"",
+    "dev": "concurrently -k -n api,web \"npm --prefix backend run dev\" \"vite --host 127.0.0.1\"",
     "build": "tsc -b && vite build",
     "build:pages": "node scripts/build-pages.mjs",
-    "start": "node server/index.mjs",
-    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test && node --test tests/*.test.mjs",
     "typecheck": "tsc -b",
-    "backup": "node scripts/backup.mjs",
-    "create-admin": "node scripts/create-admin.mjs",
-    "migrate:online": "node scripts/migrate-online.mjs",
-    "sample-video": "node scripts/sample-video.mjs"
+    "backup": "npm --prefix backend run backup",
+    "create-admin": "npm --prefix backend run create-admin",
+    "migrate:online": "npm --prefix backend run migrate:online",
+    "sample-video": "node scripts/sample-video.mjs",
+    "dev:frontend": "vite --host 127.0.0.1",
+    "dev:backend": "npm --prefix backend run dev",
+    "setup": "npm ci && npm --prefix backend ci",
+    "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.922.0",
     "@fontsource-variable/bricolage-grotesque": "^5.2.8",
     "@fontsource-variable/dm-sans": "^5.2.8",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "file-type": "^21.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
-    "multer": "^2.0.2",
-    "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.9.4",
-    "zod": "^4.1.12"
+    "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

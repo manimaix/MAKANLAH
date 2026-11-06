@@ -1,9 +1,9 @@
 import ffmpeg from "@ffmpeg-installer/ffmpeg";
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
-import { loadConfig } from "../server/config.mjs";
-import { openStore } from "../server/store.mjs";
-import { makeInitialState } from "../server/seed.mjs";
+import { loadConfig } from "../backend/src/config.mjs";
+import { openStore } from "../backend/src/store.mjs";
+import { makeInitialState } from "../backend/src/seed.mjs";
 await fs.mkdir("public/assets", { recursive: true });
 const target = "public/assets/makanlah-preview.mp4";
 const args = [

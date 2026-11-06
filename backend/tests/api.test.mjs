@@ -1,10 +1,12 @@
+import { testDatabase } from "./database-helper.mjs";
+let database;
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { createApp, distanceKm } from "../server/app.mjs";
+import { createApp, distanceKm } from "../src/app.mjs";
 
 let application, server, base, directory;
 const cookies = {};
@@ -40,8 +42,9 @@ async function request(
   return { res, data, status: res.status };
 }
 before(async () => {
+  database = await testDatabase();
   directory = await fs.mkdtemp(path.join(os.tmpdir(), "makanlah-test-"));
-  application = await createApp({
+  application = await createApp({ ...database.config,
     dataDir: directory,
     demoMode: true,
     demoPassword: testPassword,
@@ -62,6 +65,7 @@ before(async () => {
 after(async () => {
   await new Promise((resolve) => server.close(resolve));
   await application.close();
+  await database.cleanup();
   await fs.rm(directory, { recursive: true, force: true });
 });
 test("discovery filters, actual distances, and safe public authors", async () => {
@@ -158,7 +162,7 @@ test("validates uploads by bytes and saves real image files locally", async () =
     400,
   );
   const form = new FormData();
-  const bytes = await fs.readFile("public/assets/nasi.jpg");
+  const bytes = await fs.readFile(new URL("./fixtures/nasi.jpg", import.meta.url));
   form.append(
     "files",
     new Blob([bytes], { type: "image/jpeg" }),
@@ -226,7 +230,7 @@ test("private drafts stay private and media ownership cannot be forged", async (
 });
 test("real MP4 uploads support byte-range playback and video-only discovery", async () => {
   const form = new FormData();
-  const bytes = await fs.readFile("public/assets/makanlah-preview.mp4");
+  const bytes = await fs.readFile(new URL("./fixtures/makanlah-preview.mp4", import.meta.url));
   form.append("files", new Blob([bytes], { type: "video/mp4" }), "food.mp4");
   const upload = await request("/media", {
     as: "user",
@@ -623,11 +627,11 @@ test("suspended sessions are revoked and logout removes cookie access", async ()
   await request("/auth/logout", { as: "user", method: "POST", body: {} });
   assert.equal((await request("/session", { as: "user" })).data.user, null);
 });
-test("SQLite data survives a complete store close and reopen", async () => {
+test("PostgreSQL data survives a complete store close and reopen", async () => {
   const before = await application.store.read();
   await new Promise((resolve) => server.close(resolve));
   await application.close();
-  application = await createApp({
+  application = await createApp({ ...database.config,
     dataDir: directory,
     demoMode: true,
     skipRateLimit: true,
@@ -640,4 +644,12 @@ test("SQLite data survives a complete store close and reopen", async () => {
   assert.equal(after.posts.find((p) => p.id === published.id).status, "hidden");
   assert.equal(after.users.length, before.users.length);
   assert.ok(after.media.some((m) => m.id === uploaded.id));
+});
+
+test("separate backend exposes PostgreSQL health and receipt fonts, without serving the frontend", async () => {
+  const health = await request("/health");
+  assert.equal(health.status, 200);
+  assert.equal(health.data.storage, "postgres");
+  assert.equal((await fetch(base + "/fonts/dm-sans.woff2")).status, 200);
+  assert.equal((await fetch(base + "/")).status, 404);
 });

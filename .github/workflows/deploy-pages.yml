@@ -1,29 +1,45 @@
 name: Publish website preview
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: github-pages
   cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: makanlah_test
+          POSTGRES_USER: makanlah_test
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U makanlah_test -d makanlah_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://makanlah_test:ci-only-password@127.0.0.1:5432/makanlah_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
       - run: npm ci
+      - run: npm --prefix backend ci
       - run: npm test
       - run: npm run build:pages
       - uses: actions/configure-pages@v5

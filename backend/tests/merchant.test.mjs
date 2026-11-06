@@ -1,10 +1,12 @@
+import { testDatabase } from "./database-helper.mjs";
+let database;
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { createApp } from "../server/app.mjs";
+import { createApp } from "../src/app.mjs";
 import { tableService } from "../shared/table-service.mjs";
 let app, server, base, dir, menu;
 const cookies = {};
@@ -28,8 +30,9 @@ const orderBody = (items) => ({
   idempotencyKey: randomUUID(),
 });
 before(async () => {
+  database = await testDatabase();
   dir = await fs.mkdtemp(path.join(os.tmpdir(), "makanlah-merchant-"));
-  app = await createApp({
+  app = await createApp({ ...database.config,
     dataDir: dir,
     demoMode: true,
     demoPassword: testPassword,
@@ -53,6 +56,7 @@ before(async () => {
 after(async () => {
   await new Promise((resolve) => server.close(resolve));
   await app.close();
+  await database.cleanup();
   await fs.rm(dir, { force: true, recursive: true });
 });
 test("ordering controls are owned, durable and independent of listing approval", async () => {
@@ -524,7 +528,7 @@ test("table occupancy survives served and paid orders until staff clear the tabl
     body: { paid: true },
   });
   assert.equal((await readTable()).occupied, true);
-  const reopened = await createApp({ dataDir: dir, demoMode: false });
+  const reopened = await createApp({ ...database.config, dataDir: dir, demoMode: false });
   try {
     assert.equal(
       (await reopened.store.read()).tables.find((t) => t.id === table.id)

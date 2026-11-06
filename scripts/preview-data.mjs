@@ -1,5 +1,5 @@
-import { makeInitialState } from "../server/seed.mjs";
-import { publicAuthor } from "../server/auth.mjs";
+import { makeInitialState } from "../backend/src/seed.mjs";
+import { publicAuthor } from "../backend/src/auth.mjs";
 
 // Export the source's labelled examples only. Never read the local database.
 export function makePreviewCatalog() {

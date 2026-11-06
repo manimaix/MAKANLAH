@@ -16,10 +16,12 @@ import { orderStage, TicketItems } from "./OrderTicket";
 import {
   billKey,
   unpaidBills,
-  type CashierBill,
-} from "../../../shared/cashier-bills.mjs";
+  type CashierBill as SharedCashierBill,
+} from "../../../backend/shared/cashier-bills.mjs";
 import type { Order, Payment, Place, Table } from "../../types";
 import "../../cashier.css";
+
+type CashierBill = SharedCashierBill<Order>;
 
 export interface PaymentResult {
   payment: Payment;

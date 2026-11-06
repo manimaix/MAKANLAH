@@ -9,8 +9,8 @@ The preview supports food search, price/cuisine/location filters, distance sorti
 
 `npm run build:pages` builds into `dist-pages/` with `/MAKANLAH/` as its base. It creates nested route entry files and a 404 fallback. The normal `npm run build` and `npm run dev` keep their root path and full server connection.
 
-The preview catalogue comes only from labelled source examples in `server/seed.mjs`. Its export allows public author fields and excludes account emails, password hashes, sessions, preferences and order tracking hashes. It never reads `var/` or exports local posts, orders, uploads or customer information.
+The preview catalogue comes only from labelled source examples in `backend/src/seed.mjs`. Its export allows public author fields and excludes account emails, password hashes, sessions, preferences and order tracking hashes. It never reads `var/` or exports local posts, orders, uploads or customer information.
 
-Pushing `main` runs `.github/workflows/deploy-pages.yml`: install dependencies, run tests, build the preview, upload its artifact and publish it to the GitHub Pages environment. GitHub Pages must use **GitHub Actions** as its publishing source. The workflow can also be started manually.
+Pushing `main` runs `.github/workflows/deploy-pages.yml`: install frontend/backend dependencies, start an isolated PostgreSQL test service, run tests, build the preview, upload its artifact and publish it to the GitHub Pages environment. GitHub Pages must use **GitHub Actions** as its publishing source. The workflow can also be started manually.
 
-To host the full application later, deploy the Node.js server with persistent database/media storage and `DEMO_MODE=false`. Its own origin can serve the frontend and API together. See `STORAGE.md`; publishing the preview does not migrate data or provision a server.
+The backend now deploys separately from `backend/`, using PostgreSQL. The frontend deploys from `dist/`. See `STORAGE.md` and `backend/README.md` for environment and session-cookie configuration; publishing the preview does not migrate data or provision a backend.

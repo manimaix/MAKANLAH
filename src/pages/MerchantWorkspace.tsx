@@ -67,7 +67,7 @@ import type {
   Table,
 } from "../types";
 import "../merchant.css";
-import { tableService } from "../../shared/table-service.mjs";
+import { tableService } from "../../backend/shared/table-service.mjs";
 
 const navigation = [
   { key: "orders", label: "Orders", icon: ClipboardList },
